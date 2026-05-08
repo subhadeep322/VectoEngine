@@ -49,8 +49,10 @@ The UI is divided into three interactive modules to demonstrate vector mathemati
 # Brute Force: 
 O(N)linear baseline to guarantee exact
 nearest-neighbor accuracy.
-# KD-Tree: O(logN) spatial partitioning utilizing bounding-sphere intersection pruning.
-# HNSW (Hierarchical Navigable Small World):O(logN)
+# KD-Tree:
+ O(logN) spatial partitioning utilizing bounding-sphere intersection pruning.
+# HNSW (Hierarchical Navigable Small World):
+O(logN)
  multi-layered graph utilizing exponential decay probability and greedy beam-search routing.
 Generation: Retrieved factual chunks are injected into a Zero-Shot Prompt and processed by llama3.2 to synthesize highly accurate, hallucination-free answers.
 ### 📊 Understanding Distance Benchmarks
