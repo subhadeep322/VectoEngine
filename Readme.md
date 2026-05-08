@@ -22,15 +22,14 @@ This project relies on the native `fetch` API for internal routing. You must hav
 Ollama runs the neural networks that power the text embeddings and the RAG chat generation.
 * Download and install from: [ollama.com](https://ollama.com/)
 * Once installed, open your terminal/command prompt and download the required models:
-  ```bash
   # Download the Embedding Model (translates human text into mathematics)
-  ``
-  ollama pull nomic-embed-text
-  `
+```bash
+ollama pull nomic-embed-text
+```
   # Download the Generative Model (reasons and answers your questions)
-  ``
+```bash
   ollama pull llama3.2
-``
+```
 ### 3. Start the VectoScale Engine
 Clone this repository to your machine, then run the following commands in your terminal:
 ```bash
