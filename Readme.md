@@ -31,7 +31,11 @@ ollama pull nomic-embed-text
   ollama pull llama3.2
 ```
 ### 3. Start the VectoScale Engine
-Clone this repository to your machine, then run the following commands in your terminal:
+Clone this repository to your machine, 
+```bash
+git clone https://github.com/subhadeep322/VectoEngine.git
+```
+then run the following commands in your terminal:
 ```bash
 npm install
 npm start
