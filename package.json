@@ -1,0 +1,20 @@
+{
+  "name": "vecto-engine",
+  "version": "1.0.0",
+  "description": "a lightweight vector database and RAG engine built with Node.js, featuring HNSW indexing and Ollama LLM integration for efficient similarity search and contextual response generation.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "multer": "^2.1.1",
+    "pdf-extraction": "^1.0.2"
+  }
+}

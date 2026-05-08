@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VectoEngine | HNSW & RAG Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #05070a;
+            --sidebar: #0f111a;
+            --card: #161925;
+            --border: #262a3d;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --green: #10b981;
+            --red: #ef4444;
+            --cyan: #06b6d4;
+            --cs: #00d9ff;
+            --math: #b388ff;
+            --food: #ffb74d;
+            --sports: #69f0ae;
+            --manual: #ff4081; /* Neon pink for custom items */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 360px;
+            background: var(--sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 10;
+        }
+       /* --- GITHUB FOOTER --- */
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+        }
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 100px; /* Pill shape */
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        .github-link:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--accent);
+            color: #ffffff;
+            box-shadow: 0 0 15px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+        .github-icon { 
+            width: 14px; 
+            height: 14px; 
+            fill: currentColor; 
+        }
+
+        .header-brand {
+            padding: 30px 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(to bottom, rgba(99, 102, 241, 0.05), transparent);
+        }
+        .header-brand h1 { font-size: 1.2rem; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+        
+        .status-container { display: flex; gap: 8px; margin-top: 12px; }
+        .badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 700; text-transform: uppercase; border: 1px solid transparent; }
+        .badge-ok { background: rgba(16, 185, 129, 0.1); color: var(--green); border-color: var(--green); }
+        .badge-err { background: rgba(239, 68, 68, 0.1); color: var(--red); border-color: var(--red); }
+
+        .side-padding { padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+        .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 12px; display: block; }
+
+        /* --- UI ELEMENTS --- */
+        .glass-panel { background: var(--card); padding: 20px; border-radius: 14px; border: 1px solid var(--border); transition: 0.3s; }
+        .glass-panel:hover { border-color: var(--accent); }
+        
+        .input-label { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; display: block; margin-top: 10px; }
+
+        input, select, textarea {
+            width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+            padding: 12px; border-radius: 8px; font-family: inherit; font-size: 14px; margin-bottom: 5px; outline: none;
+        }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+
+        button {
+            width: 100%; padding: 12px; border-radius: 8px; border: none; cursor: pointer;
+            font-weight: 700; font-size: 13px; transition: 0.3s; margin-top: 10px;
+        }
+        .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
+        .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.1); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--border); }
+
+        /* --- GRAPH & MAIN --- */
+        .main { flex: 1; display: flex; flex-direction: column; background: #080a0f; position: relative; }
+        
+        #graphContainer {
+            width: 100%;
+            height: 400px;
+            background: radial-gradient(circle at center, #111421 0%, #05070a 100%);
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+        #vectorCanvas { width: 100%; height: 100%; cursor: crosshair; }
+
+        .tabs { display: flex; background: var(--sidebar); border-bottom: 1px solid var(--border); padding: 0 24px; }
+        .tab { padding: 16px 24px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        .tab-panel { flex: 1; display: none; padding: 24px; overflow-y: auto; }
+        .tab-panel.active { display: flex; flex-direction: column; }
+
+        /* --- LISTS --- */
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        .res-card { background: var(--card); border: 1px solid var(--border); padding: 18px; border-radius: 12px; position: relative; }
+        .res-card .dist { float: right; font-family: 'Fira Code'; font-size: 12px; color: var(--cyan); background: rgba(6, 182, 212, 0.1); padding: 2px 6px; border-radius: 4px; }
+        .res-card .meta { font-weight: 700; font-size: 14px; margin-bottom: 8px; display: block; color: var(--text); }
+
+        /* --- CHAT --- */
+        .chat-area { flex: 1; display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+        .bubble { max-width: 85%; padding: 16px; border-radius: 14px; font-size: 14px; line-height: 1.6; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } }
+        .bubble-q { background: var(--accent); align-self: flex-end; color: white; border-bottom-right-radius: 2px; }
+        .bubble-a { background: var(--card); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 2px; }
+
+        .doc-item { display: flex; justify-content: space-between; background: var(--bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; border: 1px solid var(--border); }
+        .btn-del { color: var(--red); cursor: pointer; border: none; background: none; font-weight: bold; padding: 0 5px; }
+
+        .bench-bar-container { margin-top: 12px; }
+        .bench-fill { height: 6px; border-radius: 3px; background: var(--accent); transition: 1s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <!-- Header -->
+    <div class="header-brand">
+        <h1>VectoEngine</h1>
+        <div class="status-container">
+            <div id="ollamaStatus" class="badge badge-err">Ollama: Offline</div>
+            <div id="dbStatus" class="badge badge-ok">0 Items</div>
+        </div>
+    </div>
+
+    <!-- Main Sidebar Content -->
+    <div class="side-padding">
+        
+        <!-- MODULE 1: MANUAL INSERT -->
+        <div>
+            <span class="section-label">Add New Entry</span>
+            <div class="glass-panel">
+                <input type="text" id="manualTitle" placeholder="Title (e.g. Teen Titans)">
+                <input type="text" id="manualCat" placeholder="Category (e.g. TV Show)">
+                <button class="btn-outline" id="manualAddBtn" onclick="addManualItem()">➕ ADD TO VECTOR DB</button>
+            </div>
+        </div>
+
+        <!-- MODULE 2: VECTOR SEARCH -->
+        <div>
+            <span class="section-label">Vector Control</span>
+            <div class="glass-panel">
+                <span class="input-label">Query Text</span>
+                <input type="text" id="vecQuery" placeholder="Search (e.g. Algorithms, Pizza)">
+                
+                <span class="input-label">Select Algorithm</span>
+                <select id="algoSelect">
+                    <option value="hnsw">HNSW (Graph-based)</option>
+                    <option value="kdtree">KD-Tree (Spatial)</option>
+                    <option value="bruteforce">Brute Force (Linear)</option>
+                </select>
+
+                <span class="input-label">Distance Metric</span>
+                <select id="metricSelect">
+                    <option value="cosine">Cosine Similarity</option>
+                    <option value="euclidean">Euclidean Distance</option>
+                    <option value="manhattan">Manhattan Distance</option>
+                </select>
+
+                <button class="btn-primary" onclick="handleSearch()">⚡ RUN NEURAL SEARCH</button>
+            </div>
+        </div>
+
+        <!-- MODULE 3: DOCUMENTS & UPLOADS -->
+        <div>
+            <span class="section-label">Knowledge Base</span>
+            <div class="glass-panel">
+                <button class="btn-outline" onclick="document.getElementById('fileInput').click()">📁 UPLOAD DOCUMENT</button>
+                <input type="file" id="fileInput" hidden onchange="uploadFile(event)">
+                
+                <!-- PROGRESS BAR -->
+                <div id="uploadProgressWrapper" style="display:none; margin-top:15px;">
+                    <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:5px;">
+                        <span id="uploadStatusText" style="color:var(--cyan)">Initializing...</span>
+                        <span id="uploadPercent">0%</span>
+                    </div>
+                    <div style="background:var(--bg); height:6px; border-radius:3px; overflow:hidden;">
+                        <div id="uploadProgressBar" style="width:0%; height:100%; background:linear-gradient(90deg, var(--accent), var(--cyan)); transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+
+                <div class="doc-list" id="docList" style="margin-top:15px; max-height:150px; overflow-y:auto;"></div>
+            </div>
+        </div>
+
+        <!-- MODULE 4: BENCHMARKS -->
+        <div id="benchBox" style="display:none">
+            <span class="section-label">Performance Metrics</span>
+            <div class="glass-panel" id="benchResults"></div>
+        </div>
+    </div>
+     <!-- GITHUB FOOTER-->
+    <div class="sidebar-footer">
+        <a href="https://github.com/subhadeep322" target="_blank" class="github-link">
+            <svg class="github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+            </svg>
+            Built by @subhadeep322
+        </a>
+    </div>
+
+</aside>
+
+<main class="main">
+    <!-- GRAPH VIEW -->
+    <div id="graphContainer">
+        <canvas id="vectorCanvas"></canvas>
+        <div style="position:absolute; bottom:20px; left:20px; display:flex; gap:15px; font-size:10px; color:var(--text-muted); pointer-events: none;">
+            <div style="display:flex; align-items:center; gap:5px;"><div style="width:8px; height:8px; border-radius:50%; background:var(--cs)"></div> CS</div>
+            <div style="display:flex; align-items:center; gap:5px;"><div style="width:8px; height:8px; border-radius:50%; background:var(--math)"></div> Math</div>
+            <div style="display:flex; align-items:center; gap:5px;"><div style="width:8px; height:8px; border-radius:50%; background:var(--food)"></div> Food</div>
+            <div style="display:flex; align-items:center; gap:5px;"><div style="width:8px; height:8px; border-radius:50%; background:var(--sports)"></div> Sports</div>
+            <div style="display:flex; align-items:center; gap:5px;"><div style="width:8px; height:8px; border-radius:50%; background:var(--manual)"></div> Custom Entry</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('results')">SEARCH HITS</div>
+        <div class="tab" onclick="switchTab('rag')">AI ASSISTANT</div>
+    </div>
+
+    <div id="panel-results" class="tab-panel active">
+        <div id="resultsGrid" class="results-grid">
+            <p style="color:var(--text-muted); text-align:center; width:100%; grid-column: 1/-1; margin-top:40px;">Search space is empty. Try a query.</p>
+        </div>
+    </div>
+
+    <div id="panel-rag" class="tab-panel">
+        <div class="chat-area" id="chatWindow">
+            <div class="bubble bubble-a">Ask me anything about your uploaded knowledge base.</div>
+        </div>
+        <div style="background:var(--card); padding:20px; border-radius:14px; border:1px solid var(--border);">
+            <textarea id="ragInput" placeholder="How does binary search work?..." rows="2" style="margin-bottom:10px;"></textarea>
+            <button class="btn-primary" id="askBtn" onclick="askAI()">🤖 ASK KNOWLEDGE BASE</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    const API = "http://localhost:8080";
+    let allItems = [];
+    let neighbors = [];
+    let queryPos = null;
+
+    // --- INIT ---
+    window.onload = async () => {
+        resizeCanvas();
+        checkStatus();
+        loadDocuments();
+        fetchItems();
+        setInterval(checkStatus, 5000);
+        renderGraph();
+    };
+
+    window.onresize = resizeCanvas;
+
+    function resizeCanvas() {
+        const c = document.getElementById('vectorCanvas');
+        c.width = c.parentElement.clientWidth;
+        c.height = c.parentElement.clientHeight;
+    }
+
+    function switchTab(t) {
+        document.querySelectorAll('.tab, .tab-panel').forEach(el => el.classList.remove('active'));
+        document.querySelector(`.tab[onclick="switchTab('${t}')"]`).classList.add('active');
+        document.getElementById(`panel-${t}`).classList.add('active');
+    }
+
+    // --- GRAPH ENGINE ---
+   function project(emb) {
+    if (!emb || emb.length < 16) return { x: 0, y: 0 };
+    
+    // Sum up the "weights" of the 4 dimension sectors
+    let cs = emb[0] + emb[1] + emb[2] + emb[3];
+    let math = emb[4] + emb[5] + emb[6] + emb[7];
+    let food = emb[8] + emb[9] + emb[10] + emb[11];
+    let sports = emb[12] + emb[13] + emb[14] + emb[15];
+
+    // Map them to 4 corners (Quadrants)
+    // CS = Top Left, Math = Top Right, Food = Bottom Left, Sports = Bottom Right
+    let x = (math + sports) - (cs + food);
+    let y = (food + sports) - (cs + math);
+    
+    // Scale it down so it fits nicely on the canvas
+    return { x: x * 0.15, y: y * 0.15 };
+}
+
+    function renderGraph() {
+        const canvas = document.getElementById('vectorCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const zoom = 250;
+
+        if (queryPos && neighbors.length > 0) {
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
+            ctx.lineWidth = 1;
+            neighbors.forEach(n => {
+                const item = allItems.find(i => i.id === n.id);
+                if (item) {
+                    const p = project(item.emb);
+                    ctx.moveTo(centerX + queryPos.x * zoom, centerY + queryPos.y * zoom);
+                    ctx.lineTo(centerX + p.x * zoom, centerY + p.y * zoom);
+                }
+            });
+            ctx.stroke();
+        }
+
+        allItems.forEach(item => {
+            const p = project(item.emb);
+            const isNeighbor = neighbors.some(n => n.id === item.id);
+            const color = getCatColor(item.category);
+
+            ctx.beginPath();
+            ctx.arc(centerX + p.x * zoom, centerY + p.y * zoom, isNeighbor ? 6 : 3, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            if (isNeighbor) {
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = color;
+            }
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        if (queryPos) {
+            const qX = centerX + queryPos.x * zoom;
+            const qY = centerY + queryPos.y * zoom;
+
+            // Draw Dashed Circle
+            ctx.beginPath();
+            ctx.arc(qX, qY, 8, 0, Math.PI * 2);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw "QUERY" Label
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 10px Plus Jakarta Sans';
+            ctx.fillText("QUERY", qX + 12, qY + 4);
+        }
+
+        requestAnimationFrame(renderGraph);
+    }
+
+    function getCatColor(cat) {
+        const catLower = (cat || "").toLowerCase();
+        const colors = { 
+            cs: '#00d9ff', 
+            math: '#b388ff', 
+            food: '#ffb74d', 
+            sports: '#69f0ae', 
+            doc: '#6366f1'
+        };
+        // If it's a known category, use it. Otherwise, use Neon Pink for Custom Manual Entries
+        return colors[catLower] || '#ff4081'; 
+    }
+
+    // --- DATA ACTIONS ---
+    async function fetchItems() {
+        try {
+            const res = await fetch(`${API}/items`);
+            allItems = await res.json();
+        } catch (e) { console.error("Could not fetch items"); }
+    }
+
+    async function checkStatus() {
+        try {
+            const res = await fetch(`${API}/status`);
+            const data = await res.json();
+            const ollama = document.getElementById('ollamaStatus');
+            ollama.innerText = data.ollamaAvailable ? `Ollama: ${data.genModel}` : "Ollama: Offline";
+            ollama.className = `badge ${data.ollamaAvailable ? 'badge-ok' : 'badge-err'}`;
+            document.getElementById('dbStatus').innerText = `${data.demoCount + data.docCount} Items`;
+        } catch (e) {}
+    }
+
+    async function handleSearch() {
+        const qText = document.getElementById('vecQuery').value.toLowerCase();
+        const algo = document.getElementById('algoSelect').value;
+        const metric = document.getElementById('metricSelect').value;
+        if(!qText) return;
+
+        // FIXED: Deterministic vector generation so custom items can be found
+        let dummyVec = new Array(16).fill(0.1);
+        
+        // Base hash on the string
+        for(let i=0; i<qText.length; i++) {
+            dummyVec[i % 16] += (qText.charCodeAt(i) % 50) / 100;
+        }
+
+        // Apply visual category clusters to match demo data
+        if (qText.includes("pizza") || qText.includes("food")) {
+            for(let i=8; i<12; i++) dummyVec[i] += 0.5;
+        } else if (qText.includes("math") || qText.includes("calc")) {
+            for(let i=4; i<8; i++) dummyVec[i] += 0.5;
+        } else if (qText.includes("cs") || qText.includes("code")) {
+            for(let i=0; i<4; i++) dummyVec[i] += 0.5;
+        } else if (qText.includes("sport") || qText.includes("ball")) {
+            for(let i=12; i<16; i++) dummyVec[i] += 0.5;
+        } else {
+            // For custom entries like "Teen Titans", we boost dimensions 0-3 (Matching server.js logic)
+            for(let i=0; i<4; i++) dummyVec[i] += 0.5;
+        }
+
+        queryPos = project(dummyVec);
+
+        const res = await fetch(`${API}/search?v=${dummyVec.join(',')}&k=6&algo=${algo}&metric=${metric}`);
+        const data = await res.json();
+        neighbors = data.results;
+
+        document.getElementById('resultsGrid').innerHTML = data.results.map(h => `
+            <div class="res-card" style="border-left: 4px solid ${getCatColor(h.category)}">
+                <span class="dist">${h.distance.toFixed(4)}</span>
+                <span class="meta">${h.metadata}</span>
+                <span style="font-size:10px; color:var(--text-muted)">ID: ${h.id} • ${h.category.toUpperCase()} • ${data.metric}</span>
+            </div>
+        `).join('');
+
+        runBenchmark(dummyVec, metric);
+    }
+
+    async function addManualItem() {
+        const title = document.getElementById('manualTitle').value;
+        const category = document.getElementById('manualCat').value;
+        const btn = document.getElementById('manualAddBtn');
+
+        if (!title) {
+            alert("Please enter a title");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Encoding...";
+
+        try {
+            const res = await fetch(`${API}/api/manual-insert`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, category })
+            });
+
+            if (res.ok) {
+                document.getElementById('manualTitle').value = "";
+                document.getElementById('manualCat').value = "";
+                btn.innerText = "✅ Added!";
+                
+                // Refresh the graph and item count
+                await fetchItems();
+                checkStatus();
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerText = "➕ ADD TO VECTOR DB";
+                }, 2000);
+            }
+        } catch (err) {
+            alert("Error adding item");
+            btn.disabled = false;
+            btn.innerText = "➕ ADD TO VECTOR DB";
+        }
+    }
+
+    async function runBenchmark(vec, metric) {
+        const res = await fetch(`${API}/benchmark?v=${vec.join(',')}&k=5&metric=${metric}`);
+        const d = await res.json();
+        const max = Math.max(d.bfUs, d.kdUs, d.hnswUs,1);
+        document.getElementById('benchBox').style.display = 'block';
+        document.getElementById('benchResults').innerHTML = `
+            <div class="bench-bar-container"><div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;"><span>Brute Force</span><span>${d.bfUs}μs</span></div><div style="background:var(--bg); height:6px; border-radius:3px;"><div class="bench-fill" style="width:${(d.bfUs/max)*100}%"></div></div></div>
+            <div class="bench-bar-container"><div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;"><span>KD-Tree</span><span>${d.kdUs}μs</span></div><div style="background:var(--bg); height:6px; border-radius:3px;"><div class="bench-fill" style="width:${(d.kdUs/max)*100}%; background:var(--cyan)"></div></div></div>
+            <div class="bench-bar-container"><div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;"><span>HNSW</span><span>${d.hnswUs}μs</span></div><div style="background:var(--bg); height:6px; border-radius:3px;"><div class="bench-fill" style="width:${(d.hnswUs/max)*100}%; background:var(--green)"></div></div></div>
+        `;
+    }
+
+    // FIXED: Added the Animated Progress Bar Logic here
+    async function uploadFile(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+
+        const fd = new FormData();
+        fd.append('file', file);
+
+        // UI Elements
+        const wrapper = document.getElementById('uploadProgressWrapper');
+        const bar = document.getElementById('uploadProgressBar');
+        const statusText = document.getElementById('uploadStatusText');
+        const percentText = document.getElementById('uploadPercent');
+
+        // Show Progress Bar
+        wrapper.style.display = 'block';
+        bar.style.width = '5%';
+        statusText.innerText = "Uploading file...";
+        percentText.innerText = "5%";
+
+        let progress = 5;
+        // Simulate progress while waiting for the server
+        const interval = setInterval(() => {
+            if (progress < 90) {
+                progress += Math.random() * 2; 
+                bar.style.width = `${Math.floor(progress)}%`;
+                percentText.innerText = `${Math.floor(progress)}%`;
+                
+                if (progress > 10) statusText.innerText = "Extracting text...";
+                if (progress > 40) statusText.innerText = "Generating Embeddings...";
+                if (progress > 70) statusText.innerText = "Indexing vectors...";
+            }
+        }, 800);
+
+        try {
+            const res = await fetch(`${API}/doc/upload`, { method: 'POST', body: fd });
+            if (!res.ok) throw new Error("Upload failed");
+
+            // Success! Jump to 100%
+            clearInterval(interval);
+            bar.style.width = '100%';
+            percentText.innerText = '100%';
+            statusText.innerText = "Success!";
+            statusText.style.color = "var(--green)";
+
+            setTimeout(() => {
+                wrapper.style.display = 'none';
+                loadDocuments();
+                fetchItems(); // Updates Graph with new Document chunks
+                bar.style.width = '0%';
+                statusText.style.color = "var(--cyan)";
+            }, 2000);
+
+        } catch(err) {
+            clearInterval(interval);
+            statusText.innerText = "Error uploading document";
+            statusText.style.color = "var(--red)";
+            bar.style.background = "var(--red)";
+            setTimeout(() => { wrapper.style.display = 'none'; bar.style.background = "linear-gradient(90deg, var(--accent), var(--cyan))"; }, 3000);
+        }
+    }
+
+    async function loadDocuments() {
+        const res = await fetch(`${API}/doc/list`);
+        const docs = await res.json();
+        document.getElementById('docList').innerHTML = docs.map(d => `
+            <div class="doc-item">
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px">📄 ${d.title}</span>
+                <button class="btn-del" onclick="deleteDoc(${d.id})">✕</button>
+            </div>
+        `).join('');
+    }
+
+    async function deleteDoc(id) {
+        await fetch(`${API}/doc/delete/${id}`, { method: 'DELETE' });
+        loadDocuments();
+        fetchItems();
+    }
+
+    async function askAI() {
+        const q = document.getElementById('ragInput').value;
+        if(!q) return;
+        const win = document.getElementById('chatWindow');
+        win.innerHTML += `<div class="bubble bubble-q">${q}</div>`;
+        document.getElementById('ragInput').value = "";
+        const btn = document.getElementById('askBtn');
+        btn.disabled = true; btn.innerText = "LLM is thinking...";
+
+        try {
+            const res = await fetch(`${API}/doc/ask`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ question: q, k: 3 })
+            });
+            const data = await res.json();
+            win.innerHTML += `<div class="bubble bubble-a">${data.answer}<br><small style="color:var(--cyan)">Context: ${data.contexts.map(c=>c.title).join(', ')}</small></div>`;
+        } catch(e) { 
+            win.innerHTML += `<div class="bubble bubble-a" style="color:var(--red)">Ollama connection failed.</div>`; 
+        }
+        
+        btn.disabled = false; btn.innerText = "🤖 ASK KNOWLEDGE BASE";
+        win.scrollTop = win.scrollHeight;
+    }
+</script>
+</body>
+</html>
