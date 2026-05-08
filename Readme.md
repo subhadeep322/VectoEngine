@@ -73,5 +73,3 @@ Measures grid-based block distance (L1 Norm). It sums the absolute differences a
 0.000 = Exact spatial match.
 3.000 - 6.000+ = Standard variance for unrelated items. Manhattan numbers will always appear much larger than Euclidean because it calculates the longest physical path across the axes.
 ![alt text](<Screenshot 2026-05-08 215350.png>)
-![alt text](<Screenshot 2026-05-08 215350-1.png>)
-![alt text](<Screenshot 2026-05-08 215350-2.png>)
