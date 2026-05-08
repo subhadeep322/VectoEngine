@@ -5,7 +5,7 @@ A custom-built, zero-dependency Vector Database and Retrieval-Augmented Generati
 This project intentionally bypasses high-level wrappers like LangChain, Pinecone, or ChromaDB to explore the raw mathematics of vector similarity, spatial partitioning (KD-Trees), graph routing (HNSW), and local LLM orchestration.
 
 📄 **Read the Full Research Paper:** 
-> *For a deeply detailed, handwritten breakdown of the mathematical formulas, time complexities, and algorithmic proofs behind this engine, please read my full methodology here:*  
+> *For a deeply detailed, handwritten breakdown of the mathematical formulas, time complexities, and algorithmic proofs behind this engine here:*  
 > 👉 **https://drive.google.com/file/d/1cP0RBPnH38trG7rCQqcRDyRvEwZYPjtq/view?usp=drivesdk**
 
 ---
