@@ -46,12 +46,12 @@ The UI is divided into three interactive modules to demonstrate vector mathemati
 1. Data Ingestion: Documents are mathematically processed using a Sliding Window Chunking Algorithm (250-word blocks with a 30-word overlap) to mathematically guarantee that edge-boundary context is never destroyed.
 2. Vectorization: nomic-embed-text translates these strings into high-dimensional latent space.
 3. Search Algorithms:
-# Brute Force: 
+#### Brute Force: 
 O(N)linear baseline to guarantee exact
 nearest-neighbor accuracy.
-# KD-Tree:
+#### KD-Tree:
  O(logN) spatial partitioning utilizing bounding-sphere intersection pruning.
-# HNSW (Hierarchical Navigable Small World):
+#### HNSW (Hierarchical Navigable Small World):
 O(logN)
  multi-layered graph utilizing exponential decay probability and greedy beam-search routing.
 Generation: Retrieved factual chunks are injected into a Zero-Shot Prompt and processed by llama3.2 to synthesize highly accurate, hallucination-free answers.
