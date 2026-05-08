@@ -6,7 +6,7 @@ This project intentionally bypasses high-level wrappers like LangChain, Pinecone
 
 📄 **Read the Full Research Paper:** 
 > *For a deeply detailed, handwritten breakdown of the mathematical formulas, time complexities, and algorithmic proofs behind this engine, please read my full methodology here:*  
-> 👉 **[INSERT YOUR GOOGLE DRIVE LINK HERE]**
+> 👉 **https://drive.google.com/file/d/1cP0RBPnH38trG7rCQqcRDyRvEwZYPjtq/view?usp=drivesdk**
 
 ---
 
