@@ -8,7 +8,7 @@
     "start": "node server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "subhadeep322",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
