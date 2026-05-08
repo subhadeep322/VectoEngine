@@ -38,9 +38,9 @@ npm start
 Open your web browser and navigate to http://localhost:8080 to view the interactive dashboard!
 ### 🎮 How to Use the Engine
 The UI is divided into three interactive modules to demonstrate vector mathematics in real-time:
-1.Visual Vector Search: Type a keyword (e.g., "Pizza" or "Math") to see how the engine translates text into a 16-Dimensional vector and searches the database. Toggle between algorithms (Brute Force, KD-Tree, HNSW) to see real-time microsecond speed differences in the Performance Metrics panel.
-2.Manual DB Entry: Type a custom concept (e.g., Title: "Teen Titans", Category: "TV Show"). The engine will embed it and plot a new neon point on the spatial graph, updating the search space live.
-3.The RAG Assistant: Upload a PDF or TXT file. The engine will chunk it, embed it, and store it. Switch to the "AI Assistant" tab to ask complex questions about your document, complete with verifiable mathematical citations.
+1. Visual Vector Search: Type a keyword (e.g., "Pizza" or "Math") to see how the engine translates text into a 16-Dimensional vector and searches the database. Toggle between algorithms (Brute Force, KD-Tree, HNSW) to see real-time microsecond speed differences in the Performance Metrics panel.
+2. Manual DB Entry: Type a custom concept (e.g., Title: "Teen Titans", Category: "TV Show"). The engine will embed it and plot a new neon point on the spatial graph, updating the search space live.
+3. The RAG Assistant: Upload a PDF or TXT file. The engine will chunk it, embed it, and store it. Switch to the "AI Assistant" tab to ask complex questions about your document, complete with verifiable mathematical citations.
 ### 🧠 High-Level Architecture
 Data Ingestion: Documents are mathematically processed using a Sliding Window Chunking Algorithm (250-word blocks with a 30-word overlap) to mathematically guarantee that edge-boundary context is never destroyed.
 Vectorization: nomic-embed-text translates these strings into high-dimensional latent space.
