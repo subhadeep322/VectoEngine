@@ -780,24 +780,29 @@ app.get('/', (req, res) => {
 app.post('/api/manual-insert', async (req, res) => {
     const { title, category } = req.body;
     try {
-        let emb = await Ollama.embed(title);
+        let emb = new Array(DIMS).fill(0.1);
+        let qText = title.toLowerCase();
         
-        if (emb.length > 0 && emb.length !== DIMS) {
-            // AI is online! Compress massive 1024D vector into 16D for our graph
-            const compressed = new Array(DIMS).fill(0);
-            const ratio = Math.floor(emb.length / DIMS);
-            for(let i=0; i<DIMS; i++) {
-                // Sum blocks of dimensions to preserve semantic meaning
-                for(let j=0; j<ratio; j++) compressed[i] += Math.abs(emb[(i * ratio) + j]);
-            }
-            emb = compressed;
-        } else if (emb.length === 0) {
-            // AI is offline: Fallback to character hash
-            emb = new Array(DIMS).fill(0.1);
-            for(let i=0; i<title.length; i++) emb[i % DIMS] += (title.charCodeAt(i) % 50) / 100;
-            for(let i=0; i<4; i++) emb[i] += 0.5; 
+        // Exact same deterministic math used by the UI Search
+        for(let i=0; i<qText.length; i++) {
+            emb[i % DIMS] += (qText.charCodeAt(i) % 50) / 100;
         }
 
+        if (qText.includes("pizza") || qText.includes("food")) {
+            for(let i=8; i<12; i++) emb[i] += 0.5;
+        } else if (qText.includes("math") || qText.includes("calc")) {
+            for(let i=4; i<8; i++) emb[i] += 0.5;
+        } else if (qText.includes("cs") || qText.includes("code")) {
+            for(let i=0; i<4; i++) emb[i] += 0.5;
+        } else if (qText.includes("sport") || qText.includes("ball")) {
+            for(let i=12; i<16; i++) emb[i] += 0.5;
+        } else {
+             for(let i=0; i<16; i++) emb[i] += 0.15;    
+        }
+        
+        const magnitude = Math.sqrt(emb.reduce((s, v) => s + v * v, 0));
+        if (magnitude > 0) emb = emb.map(v => v / magnitude);
+        
         const id = db.insert(title, category || "manual", emb);
         res.json({ success: true, id });
     } catch (error) {

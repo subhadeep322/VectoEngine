@@ -423,21 +423,19 @@
         } catch (e) {}
     }
 
-    async function handleSearch() {
+   async function handleSearch() {
         const qText = document.getElementById('vecQuery').value.toLowerCase();
         const algo = document.getElementById('algoSelect').value;
         const metric = document.getElementById('metricSelect').value;
         if(!qText) return;
 
-        // FIXED: Deterministic vector generation so custom items can be found
+        // Exact same deterministic math used by manual-insert
         let dummyVec = new Array(16).fill(0.1);
         
-        // Base hash on the string
         for(let i=0; i<qText.length; i++) {
             dummyVec[i % 16] += (qText.charCodeAt(i) % 50) / 100;
         }
 
-        // Apply visual category clusters to match demo data
         if (qText.includes("pizza") || qText.includes("food")) {
             for(let i=8; i<12; i++) dummyVec[i] += 0.5;
         } else if (qText.includes("math") || qText.includes("calc")) {
@@ -447,9 +445,11 @@
         } else if (qText.includes("sport") || qText.includes("ball")) {
             for(let i=12; i<16; i++) dummyVec[i] += 0.5;
         } else {
-            // For custom entries like "Teen Titans", we boost dimensions 0-3 (Matching server.js logic)
-            for(let i=0; i<4; i++) dummyVec[i] += 0.5;
+             for(let i=0; i<16; i++) dummyVec[i] += 0.15; 
         }
+        
+        const magnitude = Math.sqrt(dummyVec.reduce((s, v) => s + v * v, 0));
+        if (magnitude > 0) dummyVec = dummyVec.map(v => v / magnitude);
 
         queryPos = project(dummyVec);
 
@@ -467,7 +467,6 @@
 
         runBenchmark(dummyVec, metric);
     }
-
     async function addManualItem() {
         const title = document.getElementById('manualTitle').value;
         const category = document.getElementById('manualCat').value;
